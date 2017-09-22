@@ -1,15 +1,12 @@
 import smtplib
 import time
+from configure import *
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import os
 import random
+import re
 
-
-FROM_ADDRESS = "biblesforcarleton@gmail.com"
-SMTP_SERVER = "smtp.gmail.com:587"
-SMTP_USER = "biblesforcarleton@gmail.com"
-SMTP_PASS = "gtca2017"
-SUBJECT = "Bible Study - Bibles for Carleton"
 
 def mail(msg):
     server = smtplib.SMTP(SMTP_SERVER)
@@ -18,6 +15,7 @@ def mail(msg):
     server.sendmail(FROM_ADDRESS, msg['To'], msg.as_string())
     server.quit()
 
+
 def get_contacts(filename):
     emails = []
     with open(filename, mode='r') as contacts_file:
@@ -25,14 +23,33 @@ def get_contacts(filename):
             emails.append(contact)
     return emails
 
+
 def read_message(filename):
-    with open(filename, mode ='r') as message_file:
+    with open(filename, mode='r') as message_file:
         message_file_content = message_file.read()
     return message_file_content
 
+
 def main():
-    emails = get_contacts('testcontact.txt')
-    msgtext = read_message('message.txt')
+    pattern = re.compile(".*\\.txt$")
+    while True:
+        contactlist = raw_input("Please specify contact list file (*.txt):")
+        messagecontent = raw_input("Please specify message file (*.txt):")
+        if not pattern.match(contactlist) or not pattern.match(messagecontent):
+            print "Wrong file format"
+            continue
+        else:
+            flag1 = os.path.isfile("./"+contactlist)
+            flag2 = os.access("./"+contactlist, os.R_OK)
+            flag3 = os.path.isfile("./"+messagecontent)
+            flag4 = os.access("./"+messagecontent, os.R_OK)
+            if flag1 and flag2 and flag3 and flag4:
+                break
+            else:
+                print "one or more files not exist or readable"
+                continue
+    emails = get_contacts(contactlist)
+    msgtext = read_message(messagecontent)
     random.seed(time.time())
     for email in emails:
         msg = MIMEMultipart()
